@@ -294,87 +294,85 @@ void Enemy::rotate(sf::RenderWindow & window,Character target)
 
 std::vector<sf::Vector2f> Enemy::find_path(sf::Vector2f target, Map map)
 {
-    std::list<Tile*> *open = new std::list<Tile*>;
+    std::deque<Tile*> open;
 
-    sf::Vector2f start_pos = map.getTile(this->getGuy().getPosition());
-    Tile begining = map.getMap()[start_pos.x][start_pos.y];
-    sf::Vector2f end_pos = map.getTile(target);
-    Tile end = map.getMap()[end_pos.x][end_pos.y];
-    Tile* fin = new Tile;
+        sf::Vector2f start_pos = map.getTile(this->getGuy().getPosition());
+        Tile begining = map.getMap()[start_pos.x][start_pos.y];
+        sf::Vector2f end_pos = map.getTile(target);
+        Tile end = map.getMap()[end_pos.x][end_pos.y];
+        Tile* fin = nullptr;
 
-    begining.setNode(0,calculate_distance(begining,end));
-    begining.setParent(&begining);
-    open->push_back(&begining);
+        begining.setNode(0, calculate_distance(begining, end));
+        begining.setParent(&begining);
+        open.push_back(&begining);
 
-    while(!open->empty())
-    {
+        while (!open.empty())     {
+            std::sort(open.begin(), open.end(), [](Tile* x, Tile* y) {return x->getF() < y->getF(); });
+            while (!open.empty() && open.front()->wasVisited()) {
+                open.pop_front();
+            }
+            if (open.empty())
+                break;
 
-        open->sort([](Tile* x,Tile* y){return x->getF()<y->getF();});
-        while(!open->empty()&&open->front()->wasVisited()){
-            open->pop_front();
-        }
-        if(open->empty())
-            break;
+            Tile* current = open.front();
+            current->setVisited(true);
 
-        Tile* current = open->front();
-        current->setVisited(true);
+            std::vector<Tile*> succesors = map.getSuccesors(*current);
 
-        std::vector<Tile*> *succesors = new std::vector<Tile*>;
-        *succesors = map.getSuccesors(*current);
-
-        for(auto &neighbour : *succesors)
-        {
-            if(neighbour->getType()==0){
-                double g_temp = current->getG() + calculate_distance(*current,*neighbour);
-                if(g_temp<neighbour->getG())
-                {
-                     neighbour->setParent(current);
-                     neighbour->setNode(g_temp,calculate_distance(*neighbour,end));
-                     if(!neighbour->wasVisited()){
-                         open->push_back(neighbour);
-                     }
-                     if(current->getSprite().getPosition()==end.getSprite().getPosition()){
-                         fin=current;
-                         break;
-                     }
+            for (auto& neighbour : succesors)         {
+                if (neighbour->getType() == 0) {
+                    double g_temp = current->getG() + calculate_distance(*current, *neighbour);
+                    if (g_temp < neighbour->getG())                 {
+                        neighbour->setParent(current);
+                        neighbour->setNode(g_temp, calculate_distance(*neighbour, end));
+                        if (!neighbour->wasVisited()) {
+                            open.push_back(neighbour);
+                        }
+                        if (current->getSprite().getPosition() == end.getSprite().getPosition()) {
+                            fin = current;
+                            break;
+                        }
+                    }
                 }
             }
         }
-    }
-    Tile* x = fin;
-    std::vector<sf::Vector2f> path;
-    while(x!=x->getParent())
-    {
-        auto pos=x->getSprite().getPosition();
-        path.emplace_back(pos);
-        x=x->getParent();
-    }
-    path.emplace_back(x->getSprite().getPosition());
-    std::reverse(path.begin(),path.end());
+        Tile* x = fin;
+        std::vector<sf::Vector2f> path;
+        while (x && x != x->getParent())     {
+            auto pos = x->getSprite().getPosition();
+            path.emplace_back(pos);
+            x = x->getParent();
+        }
+        if (x) {
+                path.emplace_back(x->getSprite().getPosition());
+            }
+        std::reverse(path.begin(), path.end());
 
-    return path;
+        return path;
 }
 
 void Enemy::follow(sf::Time elapsed,std::vector<sf::Vector2f> path)
 {
     this->move(elapsed,path[path_nr]);
-    if((abs(path[path_nr].x-this->getGuy().getPosition().x)<7)&&
-       (abs(path[path_nr].y-this->getGuy().getPosition().y)<7))
+    if((abs(path[path_nr].x-this->getGuy().getPosition().x)<12)&&
+       (abs(path[path_nr].y-this->getGuy().getPosition().y)<12))
         path_nr++;
 }
 
 void Enemy::move(sf::Time elapsed,sf::Vector2f dest)
 {
-    if(can_move==true){
-        sf::Vector2f pos = this->guy.getPosition();
-        double dx = dest.x - pos.x;
-        double dy = dest.y - pos.y;
-        double angle = (180*atan2(dy,dx))/M_PI;
-        this->guy.setRotation(angle);
-        double v_x = cos(angle)*75;
-        double v_y = sin(angle)*75;
-        this->guy.move(v_x*elapsed.asSeconds(),v_y*elapsed.asSeconds());
-    }
+    if (can_move == true) {
+            sf::Vector2f pos = this->guy.getPosition();
+            float dx = dest.x - pos.x;
+            float dy = dest.y - pos.y;
+            float len = sqrtf(dx * dx + dy * dy);
+            dx /= len;
+            dy /= len;
+            float angle = (180 * atan2(dy, dx)) / 3.14159265358979323846;
+            this->guy.setRotation(angle);
+            float speed = 85.f;
+            this->guy.move(dx * speed * elapsed.asSeconds(), dy * speed * elapsed.asSeconds());
+        }
 }
 
 int Enemy::get_path_nr()

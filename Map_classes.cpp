@@ -420,6 +420,7 @@ Colectible::Colectible(float pos_x,float pos_y,int typ) : type(typ)
                 std::cout<<"could not load sound";
             }
             this->pick_sound.setBuffer(*sound);
+            this->pick_sound.setVolume(50.0);
         }
         if(type==1){
             sf::Texture *txt_collectible;

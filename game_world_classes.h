@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <list>
 #include <tuple>
+#include <deque>
 
 //Map classes-------------------------------------------------------------------------
 class Tile
@@ -74,8 +75,8 @@ private:
     int type;
     sf::Sprite colectible;
     bool picked=false;
-public:
     sf::Sound pick_sound;
+public:
     Colectible(float pos_x,float pos_y,int typ);
     Colectible();
     bool isPicked();
@@ -140,6 +141,7 @@ class Button
 {
 private:
     sf::Text text;
+    sf::Color current;
     sf::Sound click_sound;
     bool clicked = false;
 public:
@@ -187,7 +189,7 @@ public:
 class Difficulty : public Window
 {
 private:
-    enum difficulty {Text,Easy, Medium, Hard};
+    enum difficulty {Text,Easy, Medium, Hard,Pathfinding};
 public:
     Difficulty();
     int loop();
@@ -211,6 +213,8 @@ private:
     std::vector<std::tuple<float,float,float>> fov;
     enum Pause_Mode {Pause,Win,Lose};
     bool State[3]={0,0,0};
+    enum Sounds {Heart,Key,Door,Death};
+    std::vector<sf::Sound> sounds;
 public:
     Scene(int mode);
     int loop();

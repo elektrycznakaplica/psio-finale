@@ -7,7 +7,7 @@ Window::Window() : window(sf::VideoMode(1000,640),"Lights out")
 
 void Window::menu_handling(bool &light_on)
 {
-    sf::Event event;
+    sf::Event event;  
     while(window.pollEvent(event))
     {
         if(event.type == sf::Event::Closed)
@@ -48,7 +48,7 @@ void Window::menu_handling(bool &light_on)
 
 
 //-------------------------------class Button----------------------------------------
-Button::Button(double pos_x,double pos_y, unsigned int size, std::string txt,sf::Color color)
+Button::Button(double pos_x,double pos_y, unsigned int size, std::string txt,sf::Color color) : current(color)
 {
     sf::Font *font;
     font = new sf::Font;
@@ -72,17 +72,16 @@ Button::Button(double pos_x,double pos_y, unsigned int size, std::string txt,sf:
 
 void Button::click(sf::Event event)
 {
-        sf::Color current = this->text.getFillColor();
         sf::FloatRect bounds = this->text.getGlobalBounds();
         if((event.mouseButton.x>=bounds.left)&&(event.mouseButton.x<=bounds.left+bounds.width)
                 &&(event.mouseButton.y>=bounds.top)&&(event.mouseButton.y<=bounds.top+bounds.height)){
             if(event.type== sf::Event::MouseButtonPressed){
                 this->text.setFillColor(sf::Color::Red);
-                this->clicked=true;
                 this->click_sound.play();
             }
             if(event.type == sf::Event::MouseButtonReleased){
                 this->text.setFillColor(current);
+                this->clicked=!this->clicked;
             }
         }
 }
@@ -136,11 +135,20 @@ Menu::Menu() : Window()
     }
      this->flashlight.setTexture(*txt);
      this->flashlight.setPosition(490,600);
+
 }
 
 int Menu::loop()
 {
     bool light_on = false;
+
+    sf::Music music;
+    if(!music.openFromFile("menu_music.wav")){
+        std::cout<<"could not load sound";
+    }
+    music.setVolume(50.0);
+    music.setLoop(true);
+    music.play();
 
     while(window.isOpen())
     {
@@ -208,6 +216,16 @@ int Option::loop()
 
     bool light_on = false;
 
+    sf::Music music;
+    if(!music.openFromFile("menu_music.wav")){
+        std::cout<<"could not load sound";
+    }
+    music.setVolume(50.0);
+    music.setLoop(true);
+    music.setPlayingOffset(sf::seconds(3));
+    music.play();
+
+
     while(window.isOpen())
     {
         menu_handling(light_on);
@@ -229,13 +247,13 @@ Difficulty::Difficulty() : Window()
     light.setPoint(0,sf::Vector2f(107,507));
     light.setPoint(1,sf::Vector2f(200,0));
     light.setPoint(2,sf::Vector2f(1000,0));
-    light.setPoint(3,sf::Vector2f(1000,400));
+    light.setPoint(3,sf::Vector2f(1000,600));
     light.setFillColor(sf::Color(255,255,255,1));
 
     spr.setPosition(0,0);
     spr.setTexture(mask.getTexture(),true);
 
-    Button text(235,0,100,"choose difficulty:",sf::Color::Black);
+    Button text(235,0,100,"-> choose difficulty:",sf::Color::Black);
     menu.emplace_back(text);
 
     Button easy(390,130,75,"Lantern - Easy",sf::Color::Black);
@@ -246,6 +264,9 @@ Difficulty::Difficulty() : Window()
 
     Button hard(390,270,75,"Torch - Hard",sf::Color::Black);
     menu.emplace_back(hard);
+
+    Button pathfinding(235,370,85,"-> A* Pathfinding : ON",sf::Color::Black);
+    menu.emplace_back(pathfinding);
 
     sf::Texture *txt;
     txt = new sf::Texture;
@@ -260,22 +281,40 @@ Difficulty::Difficulty() : Window()
 int Difficulty::loop()
 {
     bool light_on = false;
+    int choice = 0;
+
+    sf::Music music;
+    if(!music.openFromFile("menu_music.wav")){
+        std::cout<<"could not load sound";
+    }
+    music.setVolume(50.0);
+    music.setLoop(true);
+    music.setPlayingOffset(sf::seconds(3));
+    music.play();
 
     while(window.isOpen())
     {
         menu_handling(light_on);
 
+        if(menu[Pathfinding].was_clicked()==true){
+            menu[Pathfinding].update_text("-> A* Pathfinding : OFF");
+            choice = -1;
+        }else{
+            menu[Pathfinding].update_text("-> A* Pathfinding : ON");
+            choice = 1;
+        }
+
         if(menu[Easy].was_clicked()==true){
             window.close();
-            return 1;
+            return choice*1;
         }
         if(menu[Medium].was_clicked()==true){
             window.close();
-            return 2;
+            return choice*2;
         }
         if(menu[Hard].was_clicked()==true){
             window.close();
-            return 3;
+            return choice*3;
         }
     }
 }

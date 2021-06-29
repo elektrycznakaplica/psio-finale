@@ -27,7 +27,7 @@ Scene::Scene(int mode) : window(sf::VideoMode(1000,640),"Lights out"),diff_mode(
 
     Colectible col(250.0,250.0,0);
     Colectible col1(920,500,0);
-    Colectible col2(550,60,0);
+    Colectible col2(540,60,0);
     Colectible col3(80,540,0);
     Colectible col4(570,560,0);
     this->colectibles.emplace_back(col);
@@ -65,15 +65,54 @@ Scene::Scene(int mode) : window(sf::VideoMode(1000,640),"Lights out"),diff_mode(
     this->hud.emplace_back(instruction);//1
     Button pause(365,225,125,"Pause",sf::Color::White);
     this->hud.emplace_back(pause);//2
-    Button win(340,100,125,"You won",sf::Color::White);
+    Button win(340,75,125,"You won",sf::Color::White);
     this->hud.emplace_back(win);//3
-    Button again(100,275,75,"play again",sf::Color::White);
+    Button again(100,400,75,"play again",sf::Color::White);
     this->hud.emplace_back(again);//4
-    Button return_to_menu(500,275,75,"return to menu",sf::Color::White);
+    Button return_to_menu(500,400,75,"return to menu",sf::Color::White);
     this->hud.emplace_back(return_to_menu);//5
-    Button lost(340,100,125,"You died",sf::Color::White);
+    Button lost(340,75,125,"You died",sf::Color::White);
     this->hud.emplace_back(lost);//6
 
+    sf::SoundBuffer *sound1;
+    sound1 = new sf::SoundBuffer;
+    if(!sound1->loadFromFile("collect_heart.wav")){
+        std::cout<<"could not load sound";
+    }
+    sf::Sound heart;
+    heart.setBuffer(*sound1);
+    heart.setVolume(50.0);
+    sounds.emplace_back(heart);
+
+    sf::SoundBuffer *sound2;
+    sound2 = new sf::SoundBuffer;
+    if(!sound2->loadFromFile("collect_key.wav")){
+        std::cout<<"could not load sound";
+    }
+    sf::Sound key;
+    key.setBuffer(*sound2);
+    key.setVolume(50.0);
+    sounds.emplace_back(key);
+
+    sf::SoundBuffer *sound3;
+    sound3 = new sf::SoundBuffer;
+    if(!sound3->loadFromFile("open_door.wav")){
+        std::cout<<"could not load sound";
+    }
+    sf::Sound door;
+    door.setBuffer(*sound3);
+    door.setVolume(50.0);
+    sounds.emplace_back(door);
+
+    sf::SoundBuffer *sound4;
+    sound4 = new sf::SoundBuffer;
+    if(!sound4->loadFromFile("death.wav")){
+        std::cout<<"could not load sound";
+    }
+    sf::Sound death;
+    death.setBuffer(*sound4);
+    death.setVolume(50.0);
+    sounds.emplace_back(death);
 
 }
 
@@ -183,6 +222,7 @@ void Scene::colectible_handling()
             window.draw(i->getObject());
             if(i->isPicked()==true)
             {
+               sounds[Heart].play();
                colectibles.erase(i);
                colectible_count++;
                std::string sc= std::to_string(colectible_count) + "/5";
@@ -196,6 +236,7 @@ void Scene::colectible_handling()
                 window.draw(i->getObject());
                 if(i->isPicked()==true)
                 {
+                   sounds[Key].play();
                    colectibles.erase(i);
                    colectible_count++;
                 }
@@ -208,6 +249,7 @@ void Scene::colectible_handling()
                 window.draw(i->getObject());
                 if(i->isPicked()==true)
                 {
+                   sounds[Door].play();
                    colectibles.erase(i);
                    colectible_count++;
                 }
@@ -272,6 +314,15 @@ int Scene::loop()
     int some_nr = 0;
     bool visibility = 1;
 
+    sf::Music music;
+    if(!music.openFromFile("ambient.wav")){
+        std::cout<<"could not load sound";
+    }
+    music.setVolume(50.0);
+    music.setLoop(true);
+    music.setPlayingOffset(sf::seconds(3));
+    music.play();
+
     while(window.isOpen())
     {
         sf::Time elapsed = clock.restart();
@@ -301,16 +352,16 @@ int Scene::loop()
             }
             mask.display();
             spr.setTexture(mask.getTexture(),true);
-            if(diff_mode==Easy){
+            if(abs(diff_mode)==Easy){
                 lantern.setPosition(this->hero.getGuy().getPosition());
                 mask2.draw(lantern,sf::BlendNone);
             }
-            if(diff_mode==Medium){
+            if(abs(diff_mode)==Medium){
                 cone.setPosition(this->hero.getGuy().getPosition());
                 cone.setRotation(this->hero.getGuy().getRotation()+90);
                 mask2.draw(cone,sf::BlendNone);
             }
-            if(diff_mode==Hard){
+            if(abs(diff_mode)==Hard){
                 lantern2.setPosition(this->hero.getGuy().getPosition());
                 mask2.draw(lantern2,sf::BlendNone);
             }
@@ -362,16 +413,16 @@ int Scene::loop()
             }
             mask.display();
             spr.setTexture(mask.getTexture(),true);
-            if(diff_mode==Easy){
+            if(abs(diff_mode)==Easy){
                 lantern.setPosition(this->hero.getGuy().getPosition());
                 mask2.draw(lantern,sf::BlendNone);
             }
-            if(diff_mode==Medium){
+            if(abs(diff_mode)==Medium){
                 cone.setPosition(this->hero.getGuy().getPosition());
                 cone.setRotation(this->hero.getGuy().getRotation()+90);
                 mask2.draw(cone,sf::BlendNone);
             }
-            if(diff_mode==Hard){
+            if(abs(diff_mode)==Hard){
                 lantern2.setPosition(this->hero.getGuy().getPosition());
                 mask2.draw(lantern2,sf::BlendNone);
             }
@@ -436,16 +487,16 @@ int Scene::loop()
             }
             mask.display();
             spr.setTexture(mask.getTexture(),true);
-            if(diff_mode==Easy){
+            if(abs(diff_mode)==Easy){
                 lantern.setPosition(this->hero.getGuy().getPosition());
                 mask2.draw(lantern,sf::BlendNone);
             }
-            if(diff_mode==Medium){
+            if(abs(diff_mode)==Medium){
                 cone.setPosition(this->hero.getGuy().getPosition());
                 cone.setRotation(this->hero.getGuy().getRotation()+90);
                 mask2.draw(cone,sf::BlendNone);
             }
-            if(diff_mode==Hard){
+            if(abs(diff_mode)==Hard){
                 lantern2.setPosition(this->hero.getGuy().getPosition());
                 mask2.draw(lantern2,sf::BlendNone);
             }
@@ -514,38 +565,43 @@ int Scene::loop()
             }
         }
 
-        //stozek latarki
-        if(diff_mode==Easy){
+        if(abs(diff_mode)==Easy){
             lantern.setPosition(this->hero.getGuy().getPosition());
             mask2.draw(lantern,sf::BlendNone);
             for(auto i = 0;i<enemies.size();i++){
                 window.draw(enemies[i].getGuy());
-                enemies[i].follow(elapsed,paths[i]);
+                if(diff_mode>0)
+                    enemies[i].follow(elapsed,paths[i]);
                 enemies[i].is_in_light(light);
-                //enemies[i].move(elapsed,this->hero.getGuy().getPosition());
+                if(diff_mode<0)
+                    enemies[i].move(elapsed,this->hero.getGuy().getPosition());
                 enemies_bounds.emplace_back(enemies[i].getGuy().getGlobalBounds());
             }
         }
-        if(diff_mode==Medium){
+        if(abs(diff_mode)==Medium){
             cone.setPosition(this->hero.getGuy().getPosition());
             cone.setRotation(this->hero.getGuy().getRotation()+90);
             mask2.draw(cone,sf::BlendNone);
             for(auto i = 0;i<enemies.size();i++){
                 window.draw(enemies[i].getGuy());
-                enemies[i].follow(elapsed,paths[i]);
+                if(diff_mode>0)
+                    enemies[i].follow(elapsed,paths[i]);
                 enemies[i].is_in_convex(cone);
-                //enemies[i].move(elapsed,this->hero.getGuy().getPosition());
+                if(diff_mode<0)
+                    enemies[i].move(elapsed,this->hero.getGuy().getPosition());
                 enemies_bounds.emplace_back(enemies[i].getGuy().getGlobalBounds());
             }
         }
-        if(diff_mode==Hard){
+        if(abs(diff_mode)==Hard){
             lantern2.setPosition(this->hero.getGuy().getPosition());
             mask2.draw(lantern2,sf::BlendNone);
             for(auto i = 0;i<enemies.size();i++){
                 window.draw(enemies[i].getGuy());
-                enemies[i].follow(elapsed,paths[i]);
+                if(diff_mode>0)
+                    enemies[i].follow(elapsed,paths[i]);
                 enemies[i].is_in_circle(lantern2);
-                //enemies[i].move(elapsed,this->hero.getGuy().getPosition());
+                if(diff_mode<0)
+                    enemies[i].move(elapsed,this->hero.getGuy().getPosition());
                 enemies_bounds.emplace_back(enemies[i].getGuy().getGlobalBounds());
             }
         }
@@ -571,6 +627,7 @@ int Scene::loop()
         }
         if(hero.lives()==false)
         {
+            sounds[Death].play();
             this->State[Lose] = true;
         }
 
@@ -578,12 +635,12 @@ int Scene::loop()
         some_nr++;
     }
 }
-    for(auto i = paths[0].begin() ;i<paths[0].end();i++)
-    {
-        std::cout<<i->x<<" "<<i->y<<std::endl;
-    }
-    auto pos = map.getTile(hero.getGuy().getPosition());
-    std::cout<<pos.x<<" "<<pos.y<<" "<<map.getMap()[pos.x][pos.y].getType()<<std::endl;
+//    for(auto i = paths[0].begin() ;i<paths[0].end();i++)
+//    {
+//        std::cout<<i->x<<" "<<i->y<<std::endl;
+//    }
+//    auto pos = map.getTile(hero.getGuy().getPosition());
+//    std::cout<<pos.x<<" "<<pos.y<<" "<<map.getMap()[pos.x][pos.y].getType()<<std::endl;
     return 1;
 
 }
